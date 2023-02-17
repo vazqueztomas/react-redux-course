@@ -48,8 +48,8 @@ const AddPostForm = () => {
         <label htmlFor="postAuthor">Author</label>
         <select
           type="text"
-          name="postTitle"
-          id="postTitle"
+          name="postAuthor"
+          id="postAuthor"
           value={userId}
           onChange={onAuthorChanged}
         >
