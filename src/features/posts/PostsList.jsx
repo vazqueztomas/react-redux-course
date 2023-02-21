@@ -6,10 +6,7 @@ import {
   fetchPosts,
 } from "./postsSlice";
 import React, { useEffect } from "react";
-import PostAuthor from "./PostAuthor";
-import TimeAgo from "./TimeAgo";
-import ReactionButtons from "./ReactionButtons";
-
+import PostsExcerpt from "./PostsExcerpt";
 const PostsList = () => {
   const dispatch = useDispatch();
   const posts = useSelector(selectAllPost);
@@ -22,21 +19,21 @@ const PostsList = () => {
     }
   }, [postsStatus, dispatch]);
 
-  const renderedPosts = posts.map((post) => (
-    <article key={post.id}>
-      <h3>{post.title}</h3>
-      <p>{post.content}</p>
-      <p>
-        <PostAuthor userId={post.userId} />
-        <TimeAgo timestamp={post.date} />
-      </p>
-      <ReactionButtons post={post} />
-    </article>
-  ));
+  let content = "";
+  if (postsStatus === "loading") {
+    content = <p>Loading..</p>;
+  } else if (postsStatus === "succeeded") {
+    content = posts.map((post) => (
+      <PostsExcerpt key={Math.random()} post={post} />
+    ));
+  } else if (postsStatus === "failed") {
+    content = <p>{postsErrors}</p>;
+  }
+
   return (
     <section>
       <h2>Posts</h2>
-      {renderedPosts}
+      {content}
     </section>
   );
 };
