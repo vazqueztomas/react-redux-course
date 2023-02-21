@@ -1,34 +1,16 @@
-import { createSlice, nanoid } from "@reduxjs/toolkit";
+import { createSlice, nanoid, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 import { sub } from "date-fns";
 
-const initialState = [
-  {
-    id: "1",
-    title: "Learning Redux Toolkit",
-    content:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incid",
-    date: sub(new Date(), { minutes: 10 }).toISOString(),
-    reactions: {
-      thumbsUp: 0,
-      wow: 0,
-      heart: 0,
-      rocket: 0,
-      coffee: 0,
-    },
-  },
-  {
-    id: "2",
-    title: "Learning Slice with Redux Toolkit",
-    content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do",
-    reactions: {
-      thumbsUp: 0,
-      wow: 0,
-      heart: 0,
-      rocket: 0,
-      coffee: 0,
-    },
-  },
-];
+const POSTS_URL = "https://jsonplaceholder.typicode.com/posts";
+
+const initialState = { posts: [], status: "idle", error: null };
+
+export const fetchPosts = createAsyncThunk("posts/fetchPosts", async () => {
+  const response = await axios.get(POSTS_URL);
+  return response.data;
+});
+// to manage the async actions we need to create a thunk
 
 const postsSlice = createSlice({
   name: "posts",
@@ -36,7 +18,7 @@ const postsSlice = createSlice({
   reducers: {
     postAdded: {
       reducer(state, action) {
-        state.push(action.payload);
+        state.posts.push(action.payload);
       },
       prepare(title, content, userId) {
         return {
@@ -59,14 +41,38 @@ const postsSlice = createSlice({
     },
     reactionsAdded(state, action) {
       const { postId, reaction } = action.payload;
-      const existingPost = state.find((post) => post.id == postId);
+      const existingPost = state.posts.find((post) => post.id == postId);
       if (existingPost) {
         existingPost.reactions[reaction]++;
       }
     },
   },
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = "loading";
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        // add date and reactions
+        let min = 1;
+        const loadedPost = action.payload.map((post) => {
+          post.date = sub(new Date(), { minutes: min++ }).toISOString();
+          post.reactions = {
+            thumbsUp: 0,
+            hooray: 0,
+            heart: 0,
+            rocket: 0,
+            eyes: 0,
+          };
+          return post;
+        });
+
+        state.posts = state.posts.concat(loadedPost);
+      });
+  },
 });
 
-export const selectAllPost = (state) => state.posts;
+export const selectAllPost = (state) => state.posts.posts;
 export const { postAdded, reactionsAdded } = postsSlice.actions;
 export default postsSlice.reducer;
