@@ -68,11 +68,19 @@ const postsSlice = createSlice({
           return post;
         });
 
+        // add any fetched posts
         state.posts = state.posts.concat(loadedPost);
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
       });
   },
 });
 
 export const selectAllPost = (state) => state.posts.posts;
+export const getPostsStatus = (state) => state.posts.status;
+export const getPostsError = (state) => state.posts.error;
+
 export const { postAdded, reactionsAdded } = postsSlice.actions;
 export default postsSlice.reducer;

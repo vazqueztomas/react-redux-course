@@ -1,12 +1,26 @@
-import { useSelector } from "react-redux";
-import { selectAllPost } from "./postsSlice";
-import React from "react";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectAllPost,
+  getPostsStatus,
+  getPostsError,
+  fetchPosts,
+} from "./postsSlice";
+import React, { useEffect } from "react";
 import PostAuthor from "./PostAuthor";
 import TimeAgo from "./TimeAgo";
 import ReactionButtons from "./ReactionButtons";
 
 const PostsList = () => {
+  const dispatch = useDispatch();
   const posts = useSelector(selectAllPost);
+  const postsStatus = useSelector(getPostsStatus);
+  const postsErrors = useSelector(getPostsError);
+
+  useEffect(() => {
+    if (postsStatus === "idle") {
+      dispatch(fetchPosts());
+    }
+  }, [postsStatus, dispatch]);
 
   const renderedPosts = posts.map((post) => (
     <article key={post.id}>
